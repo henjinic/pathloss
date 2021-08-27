@@ -60,7 +60,7 @@ class LandcoverMap:
         return codes
 
 
-class PathlossMap:
+class PathlossFiller:
 
     def __init__(self, lora_freq, cell_size):
         self._landcover_map = LandcoverMap()
@@ -77,9 +77,6 @@ class PathlossMap:
         return self._result_map.shape[1]
 
     def fill(self, r, c):
-        if not self._is_valid_receiver_coord(r, c):
-            raise Exception("Out of index")
-
         self._fill_nth_recur(r, c, 0, (0, 1))
         self._fill_nth_recur(r, c, 0, (1, 0))
         self._fill_nth_recur(r, c, 0, (0, -1))
@@ -90,11 +87,7 @@ class PathlossMap:
         self._fill_nth_recur(r, c, 0, (1, -1))
         self._fill_nth_recur(r, c, 0, (1, 1))
 
-    def print_map(self):
-        print(self._result_map)
-
-    def save_result(self, path):
-        np.savetxt(path, self._result_map, "%7.2f")
+        return self._result_map
 
     def _fill_nth_recur(self, r, c, n, direction):
         target_coord = r + n * direction[0], c + n * direction[1]
@@ -118,18 +111,9 @@ class PathlossMap:
 
                 result = self._result_map[pre_coord] * mean(inc_rates)
 
-        self._result_map[target_coord] = min(self._result_map[target_coord], result)
+        self._result_map[target_coord] = result
 
         self._fill_nth_recur(r, c, n + 1, direction)
-
-    def _is_valid_receiver_coord(self, r, c):
-        if r < 1 or c < 1:
-            return False
-
-        if r >= self.height or c >= self.width:
-            return False
-
-        return True
 
     def _is_valid_result_coord(self, r, c):
         if r < 0 or c < 0:
@@ -141,7 +125,53 @@ class PathlossMap:
         return True
 
 
+class PathlossMap:
+
+    def __init__(self, lora_freq, cell_size):
+        self._landcover_map = LandcoverMap()
+        self._lora_freq = lora_freq
+        self._cell_size = cell_size
+        self._result_map = np.zeros(self._landcover_map.shape) + 9999
+
+    @property
+    def height(self):
+        return self._result_map.shape[0]
+
+    @property
+    def width(self):
+        return self._result_map.shape[1]
+
+    def fill(self, r, c):
+        if not self._is_valid_receiver_coord(r, c):
+            raise Exception("Out of index")
+
+        self._result_map = np.minimum(self._result_map, PathlossFiller(self._lora_freq, self._cell_size).fill(r, c))
+
+    def print_map(self):
+        print(self._result_map)
+
+    def save_result(self, path):
+        np.savetxt(path, self._result_map, "%7.2f")
+
+    def _is_valid_receiver_coord(self, r, c):
+        if r < 1 or c < 1:
+            return False
+
+        if r >= self.height or c >= self.width:
+            return False
+
+        return True
+
+
 def main():
+
+    for r, c in [[1, 1], [5, 5], [8, 11]]:
+        pathloss_map = PathlossMap(lora_freq=900, cell_size=30)
+
+        pathloss_map.fill(r, c)
+
+        pathloss_map.save_result(f"results/result{r}_{c}.txt")
+
     pathloss_map = PathlossMap(lora_freq=900, cell_size=30)
 
     pathloss_map.fill(1, 1)
