@@ -66,7 +66,7 @@ class PathlossMap:
         self._landcover_map = LandcoverMap()
         self._lora_freq = lora_freq
         self._cell_size = cell_size
-        self._result_map = np.zeros(self._landcover_map.shape)
+        self._result_map = np.zeros(self._landcover_map.shape) + 9999
 
     @property
     def height(self):
@@ -80,21 +80,21 @@ class PathlossMap:
         if not self._is_valid_receiver_coord(r, c):
             raise Exception("Out of index")
 
-        self._fill_nth_recur(r, c, 1, (0, 1))
-        self._fill_nth_recur(r, c, 1, (1, 0))
-        self._fill_nth_recur(r, c, 1, (0, -1))
-        self._fill_nth_recur(r, c, 1, (-1, 0))
+        self._fill_nth_recur(r, c, 0, (0, 1))
+        self._fill_nth_recur(r, c, 0, (1, 0))
+        self._fill_nth_recur(r, c, 0, (0, -1))
+        self._fill_nth_recur(r, c, 0, (-1, 0))
 
-        self._fill_nth_recur(r, c, 1, (-1, -1))
-        self._fill_nth_recur(r, c, 1, (-1, 1))
-        self._fill_nth_recur(r, c, 1, (1, -1))
-        self._fill_nth_recur(r, c, 1, (1, 1))
+        self._fill_nth_recur(r, c, 0, (-1, -1))
+        self._fill_nth_recur(r, c, 0, (-1, 1))
+        self._fill_nth_recur(r, c, 0, (1, -1))
+        self._fill_nth_recur(r, c, 0, (1, 1))
 
     def print_map(self):
         print(self._result_map)
 
     def save_result(self, path):
-        np.savetxt(path, self._result_map, "%5.2f")
+        np.savetxt(path, self._result_map, "%7.2f")
 
     def _fill_nth_recur(self, r, c, n, direction):
         target_coord = r + n * direction[0], c + n * direction[1]
@@ -102,23 +102,23 @@ class PathlossMap:
         if not self._is_valid_result_coord(*target_coord):
             return
 
-        pre_coord = r + (n - 1) * direction[0], c + (n - 1) * direction[1]
-
-        codes = self._landcover_map.codes_between(pre_coord, target_coord)
-        losses = [landcover_to_func(code)(self._lora_freq, self._cell_size * n * math.dist([0, 0], direction)) for code in codes]
-
-        if n == 1:
-            result = mean(losses)
+        if n == 0:
+            result = 0
         else:
-            pre_losses = [landcover_to_func(code)(self._lora_freq, self._cell_size * (n - 1) * math.dist([0, 0], direction)) for code in codes]
-            inc_rates = [loss / pre_loss for loss, pre_loss in zip(losses, pre_losses)]
+            pre_coord = r + (n - 1) * direction[0], c + (n - 1) * direction[1]
 
-            result = self._result_map[pre_coord] * mean(inc_rates)
+            codes = self._landcover_map.codes_between(pre_coord, target_coord)
+            losses = [landcover_to_func(code)(self._lora_freq, self._cell_size * n * math.dist([0, 0], direction)) for code in codes]
 
-        if self._result_map[target_coord] > 0:
-            self._result_map[target_coord] = min(self._result_map[target_coord], result)
-        else:
-            self._result_map[target_coord] = result
+            if n == 1:
+                result = mean(losses)
+            else:
+                pre_losses = [landcover_to_func(code)(self._lora_freq, self._cell_size * (n - 1) * math.dist([0, 0], direction)) for code in codes]
+                inc_rates = [loss / pre_loss for loss, pre_loss in zip(losses, pre_losses)]
+
+                result = self._result_map[pre_coord] * mean(inc_rates)
+
+        self._result_map[target_coord] = min(self._result_map[target_coord], result)
 
         self._fill_nth_recur(r, c, n + 1, direction)
 
