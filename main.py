@@ -69,7 +69,7 @@ class PathlossCalc:
         self._landcover_maps.append(landcover_map)
         self._pathloss_functions.append(pathloss_function)
 
-    def run(self, antena_map, threshold):
+    def run(self, antena_map, threshold=None):
         result = np.full(self.shape, 9999)
 
         for r, c in np.argwhere(antena_map):
@@ -82,6 +82,7 @@ class PathlossCalc:
 
     def _fill(self, r, c, threshold):
         result = np.full(self.shape, 9999)
+        result[r, c] = 0
 
         for vector, route in self._routes.items():
             self._fill_recur(result, r, c, 0, vector, route, threshold)
@@ -91,7 +92,7 @@ class PathlossCalc:
     def _fill_recur(self, pathloss_map, r, c, src_distance, vector, route, threshold):
         dr, dc = vector
 
-        if src_distance > threshold:
+        if threshold is not None and src_distance > threshold:
             return pathloss_map
 
         if not self.is_in(r + dr, c + dc):
@@ -99,10 +100,11 @@ class PathlossCalc:
 
         accumulated_pathloss = pathloss_map[r, c]
         accumulated_distance = src_distance
+
         for ref_coord, distance in route.items():
             accumulated_pathloss = self._calc_pathloss(accumulated_pathloss, accumulated_distance,
-                                    accumulated_distance + distance,
-                                    self._weights_at(*ref_coord))
+                                                       accumulated_distance + distance,
+                                                       self._weights_at(*ref_coord))
             accumulated_distance += distance
 
         pathloss_map[r + dr, c + dc] = accumulated_pathloss
