@@ -3,22 +3,26 @@ import numpy as np
 from statistics import mean
 
 
-def pathloss_hardwood(freq, dist): # frequency in MHz, distance in meter
-    return 5.6 * freq ** (-0.009) * dist ** 0.26
+# COST235 without leaves
+def pathloss_wood_withoutleaves(freq, dist): # frequency in MHz, distance in meter
+    return 26.6 * freq ** (-0.2) * dist ** 0.5
 
-def pathloss_softwood(freq, dist):
+# COST235 with leaves
+def pathloss_wood_withleaves(freq, dist):
     return 15.6 * freq ** (-0.009) * dist ** 0.26
 
+# Egli model (openland or urban)
 def pathloss_openland(freq, dist):
-    return 26.6 * freq ** (-0.2) * dist ** 0.5
+    return 20*math.log10(freq) + 40*math.log10(dist/1000) - 20*math.log10(1) + 76.3 - 10*math.log10(10)
+
 
 def landcover_to_func(landcover):
     if landcover == 0:
         return pathloss_openland
     elif landcover == 1:
-        return pathloss_hardwood
+        return pathloss_wood_withleaves
     elif landcover == 2:
-        return pathloss_softwood
+        return pathloss_wood_withoutleaves
     else:
         raise Exception("invalidcode")
 
