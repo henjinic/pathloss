@@ -130,19 +130,21 @@ class PathlossCalc:
 
         return False
 
-def loadasc(path):
+def loadasc(path, with_header=False):
     result = np.loadtxt(path, skiprows=6)
-    header = np.loadtxt(path, dtype=str, max_rows=6)
 
-    return result, header
+    if with_header:
+        return result, np.loadtxt(path, dtype=str, max_rows=6)
+    else:
+        return result
 
 def saveasc(path, data, header):
     header_string = "\n".join(f"{key:<14}{value}" for key, value in header)
     np.savetxt(path, data, fmt="%.4f", header=header_string, comments="")
 
 def main():
-    landcover_map, header = loadasc("data/jinju_landcover.txt")
-    antena_map, _ = loadasc("data/jinju_Antena.txt")
+    landcover_map, header = loadasc("data/jinju_landcover.txt", with_header=True)
+    antena_map = loadasc("data/jinju_Antena.txt")
 
     openland_map = np.zeros(landcover_map.shape)
     wood_with_leaves_map = np.zeros(landcover_map.shape)
