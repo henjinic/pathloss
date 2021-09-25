@@ -43,15 +43,15 @@ class PathlossCalc:
             }
         }
 
-        # negate
+        # negation
         temp_routes = deepcopy(self._routes)
-
         for (r, c), routes in temp_routes.items():
             for sign_r, sign_c in [(-1, 1), (1, -1), (-1, -1)]:
                 if (r * sign_r, c * sign_c) in self._routes:
                     continue
 
-                self._routes[r * sign_r, c * sign_c] = {(r * sign_r, c * sign_c): distance for (r, c), distance in routes.items()}
+                self._routes[r * sign_r, c * sign_c] = {(r * sign_r, c * sign_c): distance
+                                                        for (r, c), distance in routes.items()}
 
         # transpose
         temp_routes = deepcopy(self._routes)
@@ -101,10 +101,10 @@ class PathlossCalc:
         accumulated_pathloss = pathloss_map[r, c]
         accumulated_distance = src_distance
 
-        for ref_coord, distance in route.items():
+        for (mr, mc), distance in route.items():
             accumulated_pathloss = self._calc_pathloss(accumulated_pathloss, accumulated_distance,
                                                        accumulated_distance + distance,
-                                                       self._weights_at(*ref_coord))
+                                                       self._weights_at(r + mr, c + mc))
             accumulated_distance += distance
 
         pathloss_map[r + dr, c + dc] = accumulated_pathloss
@@ -117,7 +117,8 @@ class PathlossCalc:
             return sum(weight * func(self._freq, dest_distance)
                        for weight, func in zip(weights, self._pathloss_functions))
 
-        return src_pathloss * sum(weight * func(self._freq, dest_distance) / func(self._freq, src_distance)
+        return src_pathloss * sum(weight * func(self._freq, dest_distance)
+                                  / func(self._freq, src_distance)
                                   for weight, func in zip(weights, self._pathloss_functions))
 
     def _weights_at(self, r, c):
@@ -129,10 +130,19 @@ class PathlossCalc:
 
         return False
 
+def loadasc(path):
+    result = np.loadtxt(path, skiprows=6)
+    header = np.loadtxt(path, dtype=str, max_rows=6)
+
+    return result, header
+
+def saveasc(path, data, header):
+    header_string = "\n".join(f"{key:<14}{value}" for key, value in header)
+    np.savetxt(path, data, fmt="%.4f", header=header_string, comments="")
 
 def main():
-    landcover_map = np.loadtxt("data/landcover.txt", skiprows=6)
-    antena_map = np.loadtxt("data/Antena.txt", skiprows=6)
+    landcover_map, header = loadasc("data/jinju_landcover.txt")
+    antena_map, _ = loadasc("data/jinju_Antena.txt")
 
     openland_map = np.zeros(landcover_map.shape)
     wood_with_leaves_map = np.zeros(landcover_map.shape)
@@ -143,15 +153,15 @@ def main():
     wood_without_leaves_map[landcover_map == 2] = 1
 
     def openland_func(freq, dist):
-        """Egli model (openland or urban)"""
+        """### Egli model (openland or urban)"""
         return 20 * np.log10(freq) + 40 * np.log10(dist / 1000) - 20 * np.log10(1) + 76.3 - 10 * np.log10(10)
 
     def wood_with_leaves_func(freq, dist):
-        """COST235 with leaves"""
+        """### COST235 with leaves"""
         return 15.6 * freq ** (-0.009) * dist ** 0.26
 
     def wood_without_leaves_func(freq, dist):
-        """COST235 without leaves"""
+        """### COST235 without leaves"""
         return 26.6 * freq ** (-0.2) * dist ** 0.5
 
     pathloss_calc = PathlossCalc()
@@ -159,9 +169,9 @@ def main():
     pathloss_calc.add_landcover(wood_with_leaves_map, wood_with_leaves_func)
     pathloss_calc.add_landcover(wood_without_leaves_map, wood_without_leaves_func)
 
-    result = pathloss_calc.run(antena_map, 10000) # meter
+    result = pathloss_calc.run(antena_map, 20000) # meter
 
-    np.savetxt("results/result.txt", result, fmt="%.4f")
+    saveasc("results/result_jinju.txt", result, header)
 
     fig, ax = plt.subplots()
     img = ax.imshow(result)
