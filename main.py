@@ -109,9 +109,8 @@ class PathlossCalc:
 
         pathloss_map[r + dr, c + dc] = accumulated_pathloss
 
-
-
-        self._fill_recur(pathloss_map, r + dr, c + dc, accumulated_distance, vector, route, threshold)
+        self._fill_recur(pathloss_map, r + dr, c + dc,
+                         accumulated_distance, vector, route, threshold)
 
     def _calc_pathloss(self, src_pathloss, src_distance, dest_distance, weights):
         if src_distance == 0:
@@ -143,19 +142,24 @@ def main():
     wood_with_leaves_map[landcover_map == 1] = 1
     wood_without_leaves_map[landcover_map == 2] = 1
 
-    # Egli model (openland or urban)
-    openland_func = lambda freq, dist: 20 * np.log10(freq) + 40 * np.log10(dist / 1000) - 20 * np.log10(1) + 76.3 - 10 * np.log10(10)
-    # COST235 with leaves
-    wood_with_leaves_func = lambda freq, dist: 15.6 * freq ** (-0.009) * dist ** 0.26
-    # COST235 without leaves
-    wood_without_leaves_func = lambda freq, dist: 26.6 * freq ** (-0.2) * dist ** 0.5
+    def openland_func(freq, dist):
+        """Egli model (openland or urban)"""
+        return 20 * np.log10(freq) + 40 * np.log10(dist / 1000) - 20 * np.log10(1) + 76.3 - 10 * np.log10(10)
+
+    def wood_with_leaves_func(freq, dist):
+        """COST235 with leaves"""
+        return 15.6 * freq ** (-0.009) * dist ** 0.26
+
+    def wood_without_leaves_func(freq, dist):
+        """COST235 without leaves"""
+        return 26.6 * freq ** (-0.2) * dist ** 0.5
 
     pathloss_calc = PathlossCalc()
     pathloss_calc.add_landcover(openland_map, openland_func)
     pathloss_calc.add_landcover(wood_with_leaves_map, wood_with_leaves_func)
     pathloss_calc.add_landcover(wood_without_leaves_map, wood_without_leaves_func)
 
-    result = pathloss_calc.run(antena_map, 1000) # meter
+    result = pathloss_calc.run(antena_map, 10000) # meter
 
     np.savetxt("results/result.txt", result, fmt="%.4f")
 
