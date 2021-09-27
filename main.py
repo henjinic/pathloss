@@ -70,7 +70,7 @@ class PathlossCalc:
         self._pathloss_functions.append(pathloss_function)
 
     def run(self, antena_map, threshold=None):
-        result = np.full(self.shape, 9999)
+        result = np.full(self.shape, 9999.0)
 
         for r, c in np.argwhere(antena_map):
             pathloss_map = self._fill(r, c, threshold)
@@ -81,7 +81,7 @@ class PathlossCalc:
         return result
 
     def _fill(self, r, c, threshold):
-        result = np.full(self.shape, 9999)
+        result = np.full(self.shape, 9999.0)
         result[r, c] = 0
 
         for vector, route in self._routes.items():
