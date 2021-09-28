@@ -66,15 +66,14 @@ class PathlossCalc:
         return self._landcover_maps[0].shape
 
     def add_landcover(self, landcover_map, pathloss_function):
-        """pathloss function must take two arguments (frequency, distance)"""
+        """`pathloss_function`: function that takes two arguments (frequency, distance)"""
         self._landcover_maps.append(np.array(landcover_map))
         self._pathloss_functions.append(pathloss_function)
 
     def run(self, antenna_map, threshold=None):
-        """`antena_map`: mask set 1 to antenna coordinations
+        """`antenna_map`: mask set 1 to antenna coordinations
         `threshold`: in meters
         """
-
         result = np.full(self.shape, 9999.0)
 
         for r, c in np.argwhere(antenna_map):
