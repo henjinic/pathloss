@@ -66,13 +66,15 @@ class PathlossCalc:
         return self._landcover_maps[0].shape
 
     def add_landcover(self, landcover_map, pathloss_function):
-        self._landcover_maps.append(landcover_map)
+        """pathloss function must take two arguments (frequency, distance)"""
+        self._landcover_maps.append(np.array(landcover_map))
         self._pathloss_functions.append(pathloss_function)
 
     def run(self, antenna_map, threshold=None):
         """`antena_map`: mask set 1 to antenna coordinations
         `threshold`: in meters
         """
+
         result = np.full(self.shape, 9999.0)
 
         for r, c in np.argwhere(antenna_map):
@@ -95,9 +97,6 @@ class PathlossCalc:
     def _fill_recur(self, pathloss_map, r, c, src_distance, vector, route, threshold):
         dr, dc = vector
 
-        if threshold is not None and src_distance > threshold:
-            return pathloss_map
-
         if not self._is_in(r + dr, c + dc):
             return pathloss_map
 
@@ -107,8 +106,11 @@ class PathlossCalc:
         for (mr, mc), distance in route.items():
             accumulated_pathloss = self._calc_pathloss(accumulated_pathloss, accumulated_distance,
                                                        accumulated_distance + distance,
-                                                       self._weights_at(r + mr, c + mc))
+                                                       self._weigh_at(r + mr, c + mc))
             accumulated_distance += distance
+
+        if threshold is not None and accumulated_distance > threshold:
+            return pathloss_map
 
         pathloss_map[r + dr, c + dc] = accumulated_pathloss
 
@@ -124,7 +126,7 @@ class PathlossCalc:
                                   / func(self._freq, src_distance)
                                   for weight, func in zip(weights, self._pathloss_functions))
 
-    def _weights_at(self, r, c):
+    def _weigh_at(self, r, c):
         weights = [landcover_map[r, c] for landcover_map in self._landcover_maps]
 
         if sum(weights) == 0:
@@ -140,8 +142,41 @@ class PathlossCalc:
 
 
 def main():
-    pass
+    # example
+    pathloss_calc = PathlossCalc(cell_size=30, freq=900)
+    pathloss_calc.add_landcover([
+        [2, 2, 1, 1],
+        [2, 2, 1, 1],
+        [2, 2, 1, 1],
+        [2, 2, 1, 1],
+        ], lambda freq, dist: dist ** 0.5)
+    pathloss_calc.add_landcover([
+        [1, 1, 2, 2],
+        [1, 1, 2, 2],
+        [1, 1, 2, 2],
+        [1, 1, 2, 2],
+        ], lambda freq, dist: dist ** 0.3)
 
+    print("weight at (0, 1):", pathloss_calc._weigh_at(0, 1))
+    print("weight at (0, 2):", pathloss_calc._weigh_at(0, 2), "\n")
+
+    result = pathloss_calc.run([
+        [0, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        ])
+    print("result without threshold")
+    print(result, "\n")
+
+    result = pathloss_calc.run([
+        [0, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        ], threshold=30)
+    print("result with threshold")
+    print(result)
 
 if __name__ == "__main__":
     main()
