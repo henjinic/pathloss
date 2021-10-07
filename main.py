@@ -33,9 +33,25 @@ def wood_without_leaves_func(freq, dist):
     return 26.6 * freq ** (-0.2) * dist ** 0.5
 
 
+def insert_number(path, number):
+    base, ext = path.split(".")
+    base += f"_{number}"
+    return f"{base}.{ext}"
+
+
 def main():
-    landcover_map, header = loadasc("data/jinju_landcover.txt", with_header=True)
-    antenna_map = loadasc("data/jinju_antenna.txt")
+    # # Jinju
+    # landcover_path = "data/jinju_landcover.txt"
+    # antenna_path = "data/jinju_antenna.txt"
+    # result_path = "results/result_jinju.asc"
+
+    # Sihwa
+    landcover_path = "data/landcover.txt"
+    antenna_path = "data/Antenna.txt"
+    result_path = "results/result_sihwa.asc"
+
+    landcover_map, header = loadasc(landcover_path, with_header=True)
+    antenna_map = loadasc(antenna_path)
 
     openland_map = np.zeros(landcover_map.shape)
     wood_with_leaves_map = np.zeros(landcover_map.shape)
@@ -50,13 +66,14 @@ def main():
     pathloss_calc.add_landcover(wood_with_leaves_map, wood_with_leaves_func)
     pathloss_calc.add_landcover(wood_without_leaves_map, wood_without_leaves_func)
 
-    result = pathloss_calc.run(antenna_map, threshold=20000)
+    pathloss_maps = pathloss_calc.run_each(antenna_map, threshold=20000)
 
-    saveasc("results/result_jinju.asc", result, header)
+    for i, pathloss_map in enumerate(pathloss_maps):
+        saveasc(insert_number(result_path, i), pathloss_map, header)
 
-    img = plt.imshow(result)
-    plt.colorbar(img)
-    plt.show()
+    # for i in range(min(len(pathloss_maps), 8)):
+    #     plt.subplot(2, 4, i + 1).imshow(pathloss_maps[i])
+    # plt.show()
 
 
 if __name__ == "__main__":

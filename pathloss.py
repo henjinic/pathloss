@@ -84,6 +84,19 @@ class PathlossCalc:
 
         return result
 
+    def run_each(self, antenna_map, threshold=None):
+        """`antenna_map`: mask set 1 to antenna coordinations
+        `threshold`: in meters
+        """
+        result = []
+
+        for r, c in np.argwhere(antenna_map):
+            pathloss_map = self._fill(r, c, threshold)
+            pathloss_map[pathloss_map == 9999] = -9999
+            result.append(pathloss_map)
+
+        return result
+
     def _fill(self, r, c, threshold):
         result = np.full(self.shape, 9999.0)
         result[r, c] = 0
