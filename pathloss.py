@@ -80,7 +80,7 @@ class PathlossCalc:
             pathloss_map = self._fill(r, c, threshold)
             result = np.minimum(result, pathloss_map)
 
-        result[result == 9999] = -1
+        result[result == 9999] = -9999
 
         return result
 

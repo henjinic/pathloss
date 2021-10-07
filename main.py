@@ -35,7 +35,7 @@ def wood_without_leaves_func(freq, dist):
 
 def main():
     landcover_map, header = loadasc("data/jinju_landcover.txt", with_header=True)
-    antenna_map = loadasc("data/jinju_Antenna.txt")
+    antenna_map = loadasc("data/jinju_antenna.txt")
 
     openland_map = np.zeros(landcover_map.shape)
     wood_with_leaves_map = np.zeros(landcover_map.shape)
@@ -52,7 +52,7 @@ def main():
 
     result = pathloss_calc.run(antenna_map, threshold=20000)
 
-    saveasc("results/result_jinju.txt", result, header)
+    saveasc("results/result_jinju.asc", result, header)
 
     img = plt.imshow(result)
     plt.colorbar(img)
