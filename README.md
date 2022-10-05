@@ -4,6 +4,10 @@
 
 ![](doc/fig1.png)
 
+* It calculates the amount of pathloss from the positions of the antennas.
+* Depending on the type of landcover in the cell through which the signal passes, different pathhloss functions are applied.
+* If a cell consists of several landcovers, the pathloss is calculated by the weighted average of the pathloss functions.
+
 ## Prerequisites
 1. Make sure you have `numpy>=1.21.2` installed.
 2. Place `pathloss.py` in a path that Python can find.
@@ -41,7 +45,7 @@
     ```
 
 ## Contributors
-The following is a list of the researchers who have helped to improve pathloss by constructing ideas and contributing code.
+The following is a list of the researchers who have helped to improve `pathloss` by constructing ideas and contributing code.
 1. Hyeonjin Kim (김현진)
 2. Cho Mingyun (조민균)
 3. Jaeyeon choi (최재연)
@@ -49,6 +53,6 @@ The following is a list of the researchers who have helped to improve pathloss b
 5. Suryeon Kim (김수련)
 
 ## License
-The pathloss is distributed under the Spatial science lab in University of Seoul(UOS), a permissive open-source (free software) license.
+The `pathloss` is distributed under the Spatial science lab in University of Seoul(UOS), a permissive open-source (free software) license.
 
 ![](https://lauos.or.kr/wp-content/uploads/2022/02/융합연구실로고.png)
