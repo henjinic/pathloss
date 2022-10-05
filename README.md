@@ -2,6 +2,8 @@
 
 `pathloss` is a module for calculating grid-based pathloss algorithm.
 
+![](doc/pathloss.png)
+
 ## Getting Started
 1. Make sure you have `numpy>=1.21.2` installed.
 2. Place `pathloss.py` in a path that Python can find.
