@@ -2,14 +2,14 @@
 
 `pathloss` is a module for calculating grid-based pathloss algorithm.
 
-![](doc/pathloss.png)
+![](doc/fig1.png)
 
-## Getting Started
+## Prerequisites
 1. Make sure you have `numpy>=1.21.2` installed.
 2. Place `pathloss.py` in a path that Python can find.
 
 ## Usage
-1. Define pathloss functions for each landcover
+1. Define pathloss functions for each landcover.
     ```py
     def pathloss_function_for_landcover_1(freq, dist):
         return ...
@@ -17,13 +17,18 @@
     def pathloss_function_for_landcover_2(freq, dist):
         return ...
     ```
-2. Load weight maps for each landcover and antenna position map (2d list or ndarray)
+2. Load weight maps for each landcover. (2d list or ndarray)
     ```py
     weight_map_for_landcover_1 = ...
     weight_map_for_landcover_2 = ...
+    ```
+    ![](doc/fig2.png)
+3. Load antenna position map. (2d list or ndarray)
+    ```py
     antenna_map = ...
     ```
-3. Run
+    ![](doc/fig3.png)
+4. Run.
     ```py
     from pathloss import PathlossCalc
 
