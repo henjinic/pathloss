@@ -36,10 +36,11 @@
 ## Contributors
 The following is a list of the researchers who have helped to improve pathloss by constructing ideas and contributing code.
 1. Chan Park (박찬)
-2.
-3.
-4.
-5. Hyeonjin Kim (김현진)
+2. Suryeon Kim (김수련)
+3. Jaeyeon choi (최재연)
+4. Cho Mingyun (조민균)
+5. Yang Jeongmo (양정모)
+6. Hyeonjin Kim (김현진)
 
 ## License
 The pathloss is distributed under the Spatial science lab in University of Seoul(UOS), a permissive open-source (free software) license.
